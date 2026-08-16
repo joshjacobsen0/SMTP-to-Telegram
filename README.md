@@ -23,6 +23,13 @@ your network can send through it (see **Security notes** below).
 
 ## Setup
 
+> **Linux users:** if you're deploying on Debian/Ubuntu (e.g. a Proxmox LXC
+> container), you can skip steps 2–4 below — the included
+> [`install.sh`](install.sh) automates dependency installation, `.env`
+> configuration, and running it as a systemd service in one step. See
+> [Running it continuously → Linux](#running-it-continuously) for details.
+> You'll still need step 1 first either way.
+
 ### 1. Create a Telegram bot and get your chat ID
 
 1. Message [@BotFather](https://t.me/BotFather) on Telegram, send `/newbot`,
