@@ -1,5 +1,7 @@
 """SMTP handler: parses incoming mail and forwards it to Telegram."""
 
+from __future__ import annotations
+
 import asyncio
 import logging
 from email import message_from_bytes, policy
