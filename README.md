@@ -170,3 +170,72 @@ This app has no built-in daemonization — pick whichever fits your platform:
   internet), and set `SMTP_HOST=127.0.0.1` if every sending device is on the
   same machine.
 - `.env` contains your bot token — it's already excluded via `.gitignore`.
+
+## Beginner walkthrough (Linux)
+
+If you're new to Linux and just want every command spelled out, from an
+empty Debian/Ubuntu machine (e.g. a fresh Proxmox LXC container) to a
+running forwarder, here it is step by step. This covers the same ground as
+**Setup** above plus `install.sh` — skip this section if you're already
+comfortable with the command line.
+
+1. Make sure the machine has what it needs:
+
+   ```bash
+   sudo apt update
+   sudo apt install -y wget python3 python3-pip python3-venv
+   ```
+
+   `install.sh` installs these itself too, but having them up front means
+   the very first command you run isn't relying on that working correctly.
+
+2. Download and extract the project — this uses `wget` to grab it directly
+   from GitHub, so you don't need `git` installed:
+
+   ```bash
+   wget https://github.com/joshjacobsen0/SMTP-to-Telegram/archive/refs/heads/main.tar.gz
+   tar -xzf main.tar.gz
+   ```
+
+   This creates a folder named `SMTP-to-Telegram-main`.
+
+3. Move into that folder — every command after this is run from inside it:
+
+   ```bash
+   cd SMTP-to-Telegram-main
+   ```
+
+4. Run the installer:
+
+   ```bash
+   sudo ./install.sh
+   ```
+
+   Two things that catch people new to Linux specifically:
+   - The Python command here is `python3`, not `python` — most Linux
+     distributions don't provide a plain `python` command the way Windows
+     does. `install.sh` already uses `python3` internally, so this only
+     matters if you type a Python command yourself later.
+   - You'll be prompted for your Telegram bot token, chat ID, and a
+     listener IP (press Enter to accept the default, which listens on all
+     interfaces). Whatever you type or paste is echoed back to you as you
+     enter it, so you can see it went in correctly before continuing.
+
+5. Confirm it's running:
+
+   ```bash
+   systemctl status smtp-to-telegram
+   ```
+
+6. If you ever need to restart it — after editing `.env` by hand, for
+   example:
+
+   ```bash
+   sudo systemctl restart smtp-to-telegram
+   ```
+
+   And to watch what it's doing in real time:
+
+   ```bash
+   journalctl -u smtp-to-telegram -f
+   ```
