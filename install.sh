@@ -35,11 +35,15 @@ get_default() {
     [ -n "$val" ] && printf '%s' "$val" || printf '%s' "$fallback"
 }
 
-# prompt_value VAR_NAME PROMPT_TEXT DEFAULT REQUIRED SECRET
+# prompt_value VAR_NAME PROMPT_TEXT DEFAULT REQUIRED
 # Precedence: an already-exported env var wins (for non-interactive/scripted
 # installs), then an interactive prompt, then DEFAULT if not interactive.
+# Input is echoed as you type/paste it (not masked) so you can see it went
+# in correctly -- these values aren't typed in front of anyone the way a
+# login password would be, and silent input made it easy to paste a bot
+# token wrong without noticing.
 prompt_value() {
-    local var_name="$1" prompt_text="$2" default_value="$3" required="$4" secret="$5"
+    local var_name="$1" prompt_text="$2" default_value="$3" required="$4"
     local preset="${!var_name:-}"
 
     if [ -n "$preset" ]; then
@@ -56,21 +60,11 @@ prompt_value() {
         return
     fi
 
-    local hint="$default_value"
-    if [ "$secret" = "yes" ] && [ -n "$default_value" ]; then
-        hint="leave blank to keep the current one"
-    elif [ -z "$default_value" ]; then
-        hint="none"
-    fi
+    local hint="${default_value:-none}"
 
     while true; do
         local input=""
-        if [ "$secret" = "yes" ]; then
-            read -r -s -p "$prompt_text [$hint]: " input
-            printf '\n' >&2
-        else
-            read -r -p "$prompt_text [$hint]: " input
-        fi
+        read -r -p "$prompt_text [$hint]: " input
 
         [ -z "$input" ] && input="$default_value"
 
@@ -87,7 +81,7 @@ prompt_value() {
 log "Installing system packages"
 if command -v apt-get >/dev/null 2>&1; then
     apt-get update -qq
-    apt-get install -y -qq python3 python3-venv ca-certificates >/dev/null
+    apt-get install -y -qq python3 python3-venv python3-pip ca-certificates >/dev/null
 else
     warn "apt-get not found -- skipping system package install. Make sure python3 and the venv module are available."
 fi
@@ -98,9 +92,9 @@ log "Setting up the virtual environment"
 "$VENV_DIR/bin/pip" install --quiet -r "$SCRIPT_DIR/requirements.txt"
 
 log "Configuring .env"
-TELEGRAM_BOT_TOKEN="$(prompt_value TELEGRAM_BOT_TOKEN "Telegram bot token" "$(get_default TELEGRAM_BOT_TOKEN "")" yes yes)"
-TELEGRAM_CHAT_ID="$(prompt_value TELEGRAM_CHAT_ID "Telegram chat ID" "$(get_default TELEGRAM_CHAT_ID "")" yes no)"
-SMTP_HOST="$(prompt_value SMTP_HOST "Listener IP/interface (blank = all interfaces)" "$(get_default SMTP_HOST "")" no no)"
+TELEGRAM_BOT_TOKEN="$(prompt_value TELEGRAM_BOT_TOKEN "Telegram bot token" "$(get_default TELEGRAM_BOT_TOKEN "")" yes)"
+TELEGRAM_CHAT_ID="$(prompt_value TELEGRAM_CHAT_ID "Telegram chat ID" "$(get_default TELEGRAM_CHAT_ID "")" yes)"
+SMTP_HOST="$(prompt_value SMTP_HOST "Listener IP/interface (blank = all interfaces)" "$(get_default SMTP_HOST "")" no)"
 SMTP_PORT="$(get_default SMTP_PORT "2525")"
 MAX_MESSAGE_SIZE="$(get_default MAX_MESSAGE_SIZE "10485760")"
 
